@@ -13,13 +13,16 @@ class BottleType2{
     boolean isSealed;
     int state;
 }
-class PackagingUnit{
+class PackagingUnit extends Thread{
     boolean isfree;
     int currbottle_type;
     boolean isSealed;
     int unfinished_type;
     int sealed_type;       ///type of last processed sealed bottle
     int start_time;
+    int buffer1;
+    int buffer2;
+
     PackagingUnit(boolean isfree,int unfinished_type,int bottleType,int start_time,int currbottle_type,boolean isSealed){
         this.currbottle_type=currbottle_type;
         this.isSealed=isSealed;
@@ -27,6 +30,8 @@ class PackagingUnit{
         this.unfinished_type=unfinished_type;
         this.sealed_type=bottleType;
         this.start_time=start_time;
+        this.buffer1=0;
+        this.buffer2=0;
     }
     void update(boolean isfree,int unfinished_type,int sealed_type,int start_time,int currbottle_type,boolean isSealed){
         this.isfree=isfree;
@@ -36,8 +41,23 @@ class PackagingUnit{
         this.currbottle_type=currbottle_type;
         this.isSealed=isSealed;
     }
+    @Override
+    public void run(){
+        if(this.isSealed){
+            //increase number of bottles in godown
+            if(this.buffer1==0&&this.buffer2==0){
+                
+            }if(this.buffer1==0){
+                
+            }
+
+        }
+        
+
+        
+    }
 }
-class SealingUnit{
+class SealingUnit extends Thread{
     
     boolean isfree;
     int start_time;

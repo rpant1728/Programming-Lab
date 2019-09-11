@@ -1,71 +1,55 @@
+// package problem3;
+
+// import Car;
 import java.awt.event.*;  
 import javax.swing.*;
 import javax.swing.table.*;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.LinkedList;
 import java.util.Queue;
-
-enum Directions {
-    North,
-    East,
-    West,
-    South
-}
-
-enum State {
-    WAITING,
-    PASSING,
-    LEFT
-}
-
-class Car {
-    static int car_count = 0;
-    String source_direction, dest_direction;
-    int vehicle_id, arrival_time, departure_time;
-    String status = "Waiting";
-
-    public Car (String source_dir, String dest_dir, int time){
-        source_direction = source_dir;
-        dest_direction = dest_dir;
-        arrival_time = time;
-        vehicle_id = car_count++;
-    }
-
-    // public Car (Directions source_dir, Directions dest_dir, int time){
-    //     source_direction = source_dir;
-    //     dest_direction = dest_dir;
-    //     arrival_time = time;
-    //     vehicle_id = car_count++;
-    // }
-}
-
-class TrafficLight {
-    boolean green;
-    public Queue <Car> waiting_cars = new LinkedList <Car>();
-
-    void add_to_queue(Car car){
-        
-    }
-}
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class AutomaticTrafficSystem {  
-    // static List <Car> vehicles = new ArrayList<>();
+    static JTextArea curr_light =  null;
+    static TrafficLight light1 = new TrafficLight();
+    static TrafficLight light2 = new TrafficLight();
+    static TrafficLight light3 = new TrafficLight();
+    static List <Car> Cars = new ArrayList<Car>();
+
+    public static void run_simulation(JTable table, JTextArea curr_light){
+        Timer timer = new Timer(); 
+        // creating an instance of task to be scheduled 
+        TimerTask task = new Worker(light1, light2, light3, table, curr_light, Cars); 
+          
+        // scheduling the timer instance 
+        timer.schedule(task, 100, 1000); 
+    }
     public static void main(String[] args) {  
-        TrafficLight light1 = new TrafficLight();
-        TrafficLight light2 = new TrafficLight();
-        TrafficLight light3 = new TrafficLight();
+        int lightActive = 1;
+        light1.isGreen = true;
 
         JFrame frame = new JFrame(); 
 
         JTextField source_text = new JTextField();
         JTextField dest_text = new JTextField();
+        JTextField arrival_time = new JTextField();
+        if(light1.isGreen) curr_light = new JTextArea("Light 1");
+        if(light2.isGreen) curr_light = new JTextArea("Light 2");
+        if(light3.isGreen) curr_light = new JTextArea("Light 3");
+        curr_light.setBounds(20, 500, 460, 40);
 
         source_text.setBounds(100, 50, 200, 30);
         dest_text.setBounds(100, 90, 200, 30);
+        arrival_time.setBounds(100, 130, 200, 30);
 
         JButton button = new JButton("Add car");
-        button.setBounds(150, 130, 100, 40); 
+        button.setBounds(150, 170, 100, 40); 
+        JButton button1 = new JButton("Run Simulation");
+        button1.setBounds(150, 210, 100, 40); 
 
         String[] columnNames = {"Vehicle ID", "Source Direction", "Destination Direction", "Status", "Time Remaining"}; 
         JTable table = new JTable(new DefaultTableModel(columnNames, 0));
@@ -76,27 +60,42 @@ public class AutomaticTrafficSystem {
                 String dest_dir = dest_text.getText();
                 Car car = new Car(source_dir, dest_dir, 0);
                 if(source_dir.equals("South") && dest_dir.equals("East")){
-                    light1.waiting_cars.add(car);
+                    car.departure_time = light1.set_departure_time(car, lightActive);
                 }
                 else if(source_dir.equals("West") && dest_dir.equals("South")){
-                    light2.waiting_cars.add(car);
+                    car.departure_time = light2.set_departure_time(car, lightActive);
                 }
                 else if(source_dir.equals("East") && dest_dir.equals("West")){
-                    light3.waiting_cars.add(car);
+                    car.departure_time = light3.set_departure_time(car, lightActive);
                 }
+                Cars.add(car);
+                System.out.println(car.departure_time);
                 DefaultTableModel model = (DefaultTableModel) table.getModel();
-                model.addRow(new String[]{String.valueOf(car.vehicle_id), car.source_direction, car.dest_direction, car.status, String.valueOf(0)});
+                model.addRow(new String[]{String.valueOf(car.vehicle_id), car.source_direction, car.dest_direction, car.status, String.valueOf(car.departure_time)});
             }
         }); 
-        table.setBounds(20, 200, 460, 250);
+
+        button1.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent e){
+                // for(Car car: Cars){
+                //     System.out.println(car.departure_time);
+                // }
+                run_simulation(table, curr_light);
+            }
+        });
+
+        table.setBounds(20, 250, 460, 250);
 
         frame.add(button); 
+        frame.add(button1);
         frame.add(source_text);
         frame.add(dest_text);
+        frame.add(arrival_time);
         frame.add(table);
-                
-        frame.setSize(500,500); 
+        
+        frame.add(curr_light);
+        frame.setSize(1000,1000); 
         frame.setLayout(null); 
         frame.setVisible(true);
-    }  
+    }
 }  
