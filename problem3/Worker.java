@@ -12,7 +12,24 @@ public class Worker extends TimerTask {
     public static Integer time = 0, activeLight = 1;
 
     public void updateRows(){
+        // if(change != -1){
+        //     table.setValueAt("Passed", change, 3);
+        //     try {
+        //         Thread.sleep(100);
+        //     }
+        //     catch(InterruptedException exc){
+    
+        //     }
+        // }
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        for(Car car: this.cars){
+            if(car.arrival_time == this.time){
+                model.addRow(new String[]{String.valueOf(car.vehicle_id), car.source_direction, car.dest_direction, car.status, String.valueOf(car.departure_time)});
+            }
+        }
         for (int i = 0; i < table.getRowCount(); i++){
+            // System.out.println(table.getValueAt(i, 3) + " " + table.getValueAt(i, 4));
+            // if(table.getValueAt(i, 3) == "Passed" || table.getValueAt(i, 3) == "Passing") continue;
             String new_value = "";
             int dep_time = this.cars.get(i).departure_time;
             if(dep_time < 0) new_value = "-";
@@ -55,6 +72,7 @@ public class Worker extends TimerTask {
         }
         this.time++;
         System.out.println(this.time);
+        // int change = -1, j = 0;
         for(Car car: cars){
             if(car.status == "Waiting"){
                 if(car.departure_time == 0){
@@ -65,10 +83,12 @@ public class Worker extends TimerTask {
             else if(car.status == "Passing"){
                 if(car.departure_time == -6){
                     car.status = "Passed";
+                    // change = j;
                     continue;
                 }
                 car.departure_time--;
             }
+            // j++;
         }
         // if(this.activeLight == 1){
         //     if(light1.waiting_cars.size() != 0){
@@ -114,6 +134,7 @@ public class Worker extends TimerTask {
         //         i++;
         //     }
         // }
+        // updateRows(change);
         updateRows();
     } 
 }

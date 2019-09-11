@@ -13,7 +13,6 @@ public class TrafficLight {
     }
 
     int set_departure_time(Car car, int lightActive){
-        // System.out.print(this.light_id + " " + lightActive + " " + waiting_cars);
         if(lightActive == this.light_id){
             car.departure_time = 6*(waiting_cars % 10) + 180*(waiting_cars / 10);
             // System.out
@@ -21,7 +20,8 @@ public class TrafficLight {
         // else if(lightActive){
         //     car.departure_time = 6*(waiting_cars.size() % 10) + 18*waiting_cars.size();
         // }
-        // this.waiting_cars.add(car);
+        this.waiting_cars++;
+        System.out.print(this.light_id + " " + lightActive + " " + car.departure_time);
         return car.departure_time;
     }
 }

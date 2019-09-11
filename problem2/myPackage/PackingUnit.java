@@ -1,8 +1,8 @@
 package myPackage;
 import java.util.concurrent.*;
 public class PackingUnit extends Thread{
-    static int currentBottle=0;
-    static boolean isSealed=false;   //is current bottle sealed or not
+    public static int currentBottle=0;
+    public static boolean isSealed=false;   //is current bottle sealed or not
     static int lastUnfinished=0; //last type of bottle packed from unfinshed tray
     static int lastQueue=0;      //last type of bottle packed from qu'sray
     UnfinishedTray unfinishedTray;
@@ -37,7 +37,7 @@ public class PackingUnit extends Thread{
             try{
                 this.godownSem.acquire();
                 if(c==1){
-                        this.godown.bottle1++;
+                    this.godown.bottle1++;
                 }else{
                     this.godown.bottle2++;
                 }
@@ -50,7 +50,7 @@ public class PackingUnit extends Thread{
                 try{
                     this.sealingSem.acquire();
                     this.sealBuffer.sealUnitBuffer.add(this.currentBottle);
-                    System.out.println(this.currentBottle);
+                    // System.out.println("current bottle packingunit"+this.currentBottle + " " + this.timer.currentTime);
                 } catch (InterruptedException exc) { 
                     System.out.println(exc); 
                 }
@@ -100,7 +100,7 @@ public class PackingUnit extends Thread{
             } 
             this.packingSem.release();
 
-            update(true,1,this.lastUnfinished,2);
+            update(true,2,this.lastUnfinished,2);
         }
         this.timer.nextBottle1=this.timer.nextBottle1+2;
     }   

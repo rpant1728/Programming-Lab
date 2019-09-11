@@ -4,8 +4,8 @@ public class SealingUnit extends Thread{
     // int nextTime;
     // int qBottle1;       
     // int qBottle2;       //count of bottle in queue
-    static int currentBottle=0;
-    static boolean isPacked=false;   //is current bottle sealed or not
+    public  static int currentBottle=0;
+    public static boolean isPacked=false;   //is current bottle sealed or not
     static int lastUnfinished=0; //last type of bottle packed from unfinshed tray
     // int lastQueue;      //last type of bottle packed from qu'sray
     UnfinishedTray unfinishedTray;
@@ -43,7 +43,7 @@ public class SealingUnit extends Thread{
                 }else{
                     this.packBuffer.qBottle2++;
                 }
-            }catch(InterruptedException exc) { 
+            }catch(InterruptedException exc) {
                 System.out.println(exc); 
             }
             this.packingSem.release();

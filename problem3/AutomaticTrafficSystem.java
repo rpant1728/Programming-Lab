@@ -26,7 +26,7 @@ public class AutomaticTrafficSystem {
         TimerTask task = new Worker(light1, light2, light3, table, curr_light, Cars); 
           
         // scheduling the timer instance 
-        timer.schedule(task, 100, 1000); 
+        timer.schedule(task, 100, 2000); 
     }
     public static void main(String[] args) {  
         int lightActive = 1;
@@ -58,7 +58,8 @@ public class AutomaticTrafficSystem {
             public void actionPerformed(ActionEvent e){
                 String source_dir = source_text.getText();
                 String dest_dir = dest_text.getText();
-                Car car = new Car(source_dir, dest_dir, 0);
+                int time = Integer.parseInt(arrival_time.getText());
+                Car car = new Car(source_dir, dest_dir, time);
                 if(source_dir.equals("South") && dest_dir.equals("East")){
                     car.departure_time = light1.set_departure_time(car, lightActive);
                 }
@@ -71,7 +72,7 @@ public class AutomaticTrafficSystem {
                 Cars.add(car);
                 System.out.println(car.departure_time);
                 DefaultTableModel model = (DefaultTableModel) table.getModel();
-                model.addRow(new String[]{String.valueOf(car.vehicle_id), car.source_direction, car.dest_direction, car.status, String.valueOf(car.departure_time)});
+                // model.addRow(new String[]{String.valueOf(car.vehicle_id), car.source_direction, car.dest_direction, car.status, String.valueOf(car.departure_time)});
             }
         }); 
 
@@ -84,6 +85,13 @@ public class AutomaticTrafficSystem {
             }
         });
 
+        JPanel panel = new JPanel(); 
+        panel.setBounds(20, 550, 460, 50);
+        panel.setBackground(Color.red); 
+        
+        // frame.add(new Panel(){
+
+        // })
         table.setBounds(20, 250, 460, 250);
 
         frame.add(button); 
@@ -92,6 +100,7 @@ public class AutomaticTrafficSystem {
         frame.add(dest_text);
         frame.add(arrival_time);
         frame.add(table);
+        frame.add(panel);
         
         frame.add(curr_light);
         frame.setSize(1000,1000); 
