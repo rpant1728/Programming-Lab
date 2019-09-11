@@ -1,12 +1,14 @@
 import java.util.*;
 
 class Order {
+    static int order_count = 0;
     String item;
-    int quantity;
+    int quantity, id;
 
     public Order (String item, int quantity){
         this.item = item;
         this.quantity = quantity;
+        this.id = ++this.order_count;
     }
 }
 
@@ -31,69 +33,70 @@ class Inventory {
 }
 
 class Worker implements Runnable {
-    Order order;
     Inventory inventory;
-    int order_no;
+    Order[] orders;
 
-    public Worker(Order order, Inventory inventory, int order_no){
-        this.order = order;
+    public Worker(Inventory inventory, Order[] orders){
         this.inventory = inventory;
-        this.order_no = order_no;
+        this.orders = orders;
     }
 
     @Override
     public void run(){
-        boolean success = true;
-        if(this.order.item.equals("C")){
-            synchronized(inventory.caps){
-                if(this.order.quantity <= inventory.caps){
-                    inventory.caps -= this.order.quantity;
+        for(int i=0; i<orders.length; i++){
+            if(orders[i] == null) break;
+            boolean success = true;
+            if(this.orders[i].item.equals("C")){
+                synchronized(inventory.caps){
+                    if(this.orders[i].quantity <= inventory.caps){
+                        inventory.caps -= this.orders[i].quantity;
+                    }
+                    else success = false;
                 }
-                else success = false;
-            }
-            synchronized(inventory){
-                if(success) System.out.println("Order " + this.order_no + " succesful!");
-                else System.out.println("Order " + this.order_no + " failed!");
-                inventory.print_inventory();
-            }
-        }
-        if(this.order.item.equals("S")){
-            synchronized(inventory.small_shirts){
-                if(this.order.quantity <= inventory.small_shirts){
-                    inventory.small_shirts -= this.order.quantity;
+                synchronized(inventory){
+                    if(success) System.out.println("Order " + this.orders[i].id + " succesful!");
+                    else System.out.println("Order " + this.orders[i].id + " failed!");
+                    inventory.print_inventory();
                 }
-                else success = false;
             }
-            synchronized(inventory){
-                if(success) System.out.println("Order " + this.order_no + " succesful!");
-                else System.out.println("Order " + this.order_no + " failed!");
-                inventory.print_inventory();
-            }
-        }
-        if(this.order.item.equals("M")){
-            synchronized(inventory.med_shirts){
-                if(this.order.quantity <= inventory.med_shirts){
-                    inventory.med_shirts -= this.order.quantity;
+            else if(this.orders[i].item.equals("S")){
+                synchronized(inventory.small_shirts){
+                    if(this.orders[i].quantity <= inventory.small_shirts){
+                        inventory.small_shirts -= this.orders[i].quantity;
+                    }
+                    else success = false;
                 }
-                else success = false;
-            }
-            synchronized(inventory){
-                if(success) System.out.println("Order " + this.order_no + " succesful!");
-                else System.out.println("Order " + this.order_no + " failed!");
-                inventory.print_inventory();
-            }
-        }
-        if(this.order.item.equals("L")){
-            synchronized(inventory.large_shirts){
-                if(this.order.quantity <= inventory.large_shirts){
-                    inventory.large_shirts -= this.order.quantity;
+                synchronized(inventory){
+                    if(success) System.out.println("Order " + this.orders[i].id + " succesful!");
+                    else System.out.println("Order " + this.orders[i].id + " failed!");
+                    inventory.print_inventory();
                 }
-                else success = false;
             }
-            synchronized(inventory){
-                if(success) System.out.println("Order " + this.order_no + " succesful!");
-                else System.out.println("Order " + this.order_no + " failed!");
-                inventory.print_inventory();
+            else if(this.orders[i].item.equals("M")){
+                synchronized(inventory.med_shirts){
+                    if(this.orders[i].quantity <= inventory.med_shirts){
+                        inventory.med_shirts -= this.orders[i].quantity;
+                    }
+                    else success = false;
+                }
+                synchronized(inventory){
+                    if(success) System.out.println("Order " + this.orders[i].id + " succesful!");
+                    else System.out.println("Order " + this.orders[i].id + " failed!");
+                    inventory.print_inventory();
+                }
+            }
+            else if(this.orders[i].item.equals("L")){
+                synchronized(inventory.large_shirts){
+                    if(this.orders[i].quantity <= inventory.large_shirts){
+                        inventory.large_shirts -= this.orders[i].quantity;
+                    }
+                    else success = false;
+                }
+                synchronized(inventory){
+                    if(success) System.out.println("Order " + this.orders[i].id + " succesful!");
+                    else System.out.println("Order " + this.orders[i].id + " failed!");
+                    inventory.print_inventory();
+                }
             }
         }
     }
@@ -101,6 +104,8 @@ class Worker implements Runnable {
 
 public class MerchandiseSale {
     public static void main(String[] args){
+        int NUM_THREADS = 5;
+
         Scanner in = new Scanner(System.in);
         System.out.println("Enter number of caps in inventory: ");
         int num_caps = in.nextInt();
@@ -116,18 +121,21 @@ public class MerchandiseSale {
         System.out.println("Number of students ordering: ");
         int total_orders = in.nextInt();
         
-        Order[] orders = new Order[total_orders];
+        int size = (int) Math.ceil(((float) total_orders)/((float)NUM_THREADS));
+        Order[][] orders = new Order[NUM_THREADS][size];
+
+        int j = 0;
         for(int i=0; i<total_orders; i++){
             String item = in.next();
-            int quantity = in.nextInt();
-            orders[i] = new Order(item, quantity);
+            int quantity = in.nextInt(); 
+            orders[j][i/NUM_THREADS] = new Order(item, quantity);
+            j = (j+1) % NUM_THREADS;
         }
-        for(int i=0; i<total_orders; i+=5){
-            for(int j=i; j<total_orders && j<i+5; j++){
-                Worker worker = new Worker(orders[j], inventory, j+1);
-                Thread thread = new Thread(worker);
-                thread.start();
-            }
+
+        for(int k=0; k<total_orders && k<NUM_THREADS; k++){
+            Worker worker = new Worker(inventory, orders[k]);
+            Thread thread = new Thread(worker);
+            thread.start();
         }
     }
 }

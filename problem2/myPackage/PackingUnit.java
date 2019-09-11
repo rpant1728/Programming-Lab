@@ -11,8 +11,9 @@ public class PackingUnit extends Thread{
     SealingUnitBuffer sealBuffer;
     PackingUnitBuffer packBuffer;
     Godown godown;
+    Bottles bottles;
 
-    public PackingUnit(UnfinishedTray u,SealingUnitBuffer s,PackingUnitBuffer p,Semaphore sem,Semaphore packingSem,Semaphore sealingSem,Semaphore godownSem,Time timer,Godown godown){
+    public PackingUnit(UnfinishedTray u,SealingUnitBuffer s,PackingUnitBuffer p,Semaphore sem,Semaphore packingSem,Semaphore sealingSem,Semaphore godownSem,Time timer,Godown godown,Bottles bottles){
         this.unfinishedTray=u;
         this.sealBuffer=s;
         this.packBuffer=p;
@@ -22,6 +23,7 @@ public class PackingUnit extends Thread{
         this.godownSem=godownSem;
         this.timer=timer;
         this.godown=godown;
+        this.bottles=bottles;
     }        
     public void update(boolean sealed,int bottle,int lastUnfinished,int lastQueue){
         this.isSealed=sealed;
@@ -38,8 +40,10 @@ public class PackingUnit extends Thread{
                 this.godownSem.acquire();
                 if(c==1){
                     this.godown.bottle1++;
+                    this.bottles.packedbottle1++;
                 }else{
                     this.godown.bottle2++;
+                    this.bottles.packedbottle2++;
                 }
             } catch (InterruptedException exc) { 
                 System.out.println(exc); 
@@ -50,6 +54,12 @@ public class PackingUnit extends Thread{
                 try{
                     this.sealingSem.acquire();
                     this.sealBuffer.sealUnitBuffer.add(this.currentBottle);
+                    if(this.currentBottle==1){
+                        this.bottles.packedbottle1++;
+                    }
+                    else{
+                        this.bottles.packedbottle2++;
+                    }
                     // System.out.println("current bottle packingunit"+this.currentBottle + " " + this.timer.currentTime);
                 } catch (InterruptedException exc) { 
                     System.out.println(exc); 
@@ -61,7 +71,7 @@ public class PackingUnit extends Thread{
             }
         }
         if(this.packBuffer.qBottle1==0&&this.packBuffer.qBottle2==0){
-            if((this.lastUnfinished!=1||this.unfinishedTray.b2==0)&&this.unfinishedTray.b1!=0){
+            if((this.lastUnfinished!=1||this.unfinishedTray.b2==0)&&this.unfinishedTray.b1>0){
                 try{
                     this.semUnfinished.acquire();
                     this.unfinishedTray.b1--;
@@ -71,7 +81,7 @@ public class PackingUnit extends Thread{
 
                 this.semUnfinished.release();
                 update(false,1,1,this.lastQueue);
-            }else if((this.lastUnfinished!=2||this.unfinishedTray.b1==0)&&this.unfinishedTray.b2!=0){
+            }else if((this.lastUnfinished!=2||this.unfinishedTray.b1==0)&&this.unfinishedTray.b2>0){
                 try{
                     this.semUnfinished.acquire();
                     this.unfinishedTray.b2--;
@@ -80,8 +90,10 @@ public class PackingUnit extends Thread{
                 }
                 this.semUnfinished.release();
                 update(false,2,2,this.lastQueue);
+            }else{
+                update(false,0,this.lastUnfinished,this.lastQueue);
             }
-        }else if((this.lastQueue!=1||this.packBuffer.qBottle2==0)&&this.packBuffer.qBottle1!=0){
+        }else if((this.lastQueue!=1||this.packBuffer.qBottle2==0)&&this.packBuffer.qBottle1>0){
             try{
                 this.packingSem.acquire();
             
@@ -91,7 +103,7 @@ public class PackingUnit extends Thread{
             } 
             this.packingSem.release();
             update(true,1,this.lastUnfinished,1);
-        }else if((this.lastQueue!=2||this.packBuffer.qBottle1==0)&&this.packBuffer.qBottle2!=0){
+        }else if((this.lastQueue!=2||this.packBuffer.qBottle1==0)&&this.packBuffer.qBottle2>0){
             try{
                 this.packingSem.acquire();
                 this.packBuffer.qBottle2--;
@@ -102,6 +114,10 @@ public class PackingUnit extends Thread{
 
             update(true,2,this.lastUnfinished,2);
         }
+        // else{
+        //     this.timer.nextBottle1=this.timer.n  extBottle2;
+        //      return;
+        // }
         this.timer.nextBottle1=this.timer.nextBottle1+2;
     }   
 }

@@ -22,14 +22,14 @@ public class Factory{
         Godown godown = new Godown();
         UnfinishedTray tray=new UnfinishedTray(b1,b2,sem);
         PackingUnitBuffer pub=new PackingUnitBuffer(packingSem);
+        Bottles bottles=new Bottles();
         while(time.currentTime <= inp_time){
             
             if(time.currentTime == time.nextBottle1 && time.currentTime  == time.nextBottle2){
-                PackingUnit packing = new PackingUnit(tray,sub,pub,sem,packingSem,sealingSem,godownSem,time,godown);
-                SealingUnit sealing = new SealingUnit(tray,sub,pub,sem,packingSem,sealingSem,godownSem,time,godown);
+                PackingUnit packing = new PackingUnit(tray,sub,pub,sem,packingSem,sealingSem,godownSem,time,godown,bottles);
+                SealingUnit sealing = new SealingUnit(tray,sub,pub,sem,packingSem,sealingSem,godownSem,time,godown,bottles);
                 packing.start();
                 sealing.start();
-
                 try {
                     sealing.join();
                 } 
@@ -47,7 +47,7 @@ public class Factory{
                
             }
             else if(time.currentTime  == time.nextBottle1){
-                PackingUnit packing = new PackingUnit(tray,sub,pub,sem,packingSem,sealingSem,godownSem,time,godown);
+                PackingUnit packing = new PackingUnit(tray,sub,pub,sem,packingSem,sealingSem,godownSem,time,godown,bottles);
                 packing.start();
 
                 // System.out.println("In Packing Machine : "+sealing.currentBottle+" isSealed "+packing.isPacked);
@@ -60,7 +60,7 @@ public class Factory{
                 // System.out.println("In Packing Machine : "+packing.currentBottle+" isSealed "+packing.isSealed);
             }
             else if(time.currentTime  == time.nextBottle2){
-                SealingUnit sealing = new SealingUnit(tray,sub,pub,sem,packingSem,sealingSem,godownSem,time,godown);
+                SealingUnit sealing = new SealingUnit(tray,sub,pub,sem,packingSem,sealingSem,godownSem,time,godown,bottles);
                 sealing.start();
 
             // System.out.println("In Packing Machine : "+packing.currentBottle+" isSealed "+packing.isSealed);
@@ -97,8 +97,8 @@ public class Factory{
             }
             sub.sealUnitBuffer.remove();
         }
-        PackingUnit packing = new PackingUnit(tray,sub,pub,sem,packingSem,sealingSem,godownSem,time,godown);
-        SealingUnit sealing = new SealingUnit(tray,sub,pub,sem,packingSem,sealingSem,godownSem,time,godown);
+        PackingUnit packing = new PackingUnit(tray,sub,pub,sem,packingSem,sealingSem,godownSem,time,godown,bottles);
+        SealingUnit sealing = new SealingUnit(tray,sub,pub,sem,packingSem,sealingSem,godownSem,time,godown,bottles);
         if(packing.isSealed){
             if(packing.currentBottle==1){
                 sb1++;
@@ -115,13 +115,22 @@ public class Factory{
         }
        
         System.out.println("Bottle1");
-        System.out.println("Packed "+pb1);
-        System.out.println("Sealed "+sb1);
+        System.out.println("Packed "+bottles.packedbottle1);
+        System.out.println("Sealed "+bottles.sealedbottle1);
+        if(bottles.packedbottle1<bottles.sealedbottle1){
+            gb1=bottles.packedbottle1;
+        }else{
+            gb1=bottles.sealedbottle1;
+        }
         System.out.println("Godown "+gb1);
-        // System.out.println("Packed: "+);  
         System.out.println("Bottle2");
-        System.out.println("Packed "+pb2);
-        System.out.println("Sealed "+sb2);
+        System.out.println("Packed "+bottles.packedbottle2);
+        System.out.println("Sealed "+bottles.sealedbottle2);
+        if(bottles.packedbottle2<bottles.sealedbottle2){
+            gb2=bottles.packedbottle2;
+        }else{
+            gb2=bottles.sealedbottle2;
+        }
         System.out.println("Godown "+gb2);
     }
 }

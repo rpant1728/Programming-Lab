@@ -31,11 +31,11 @@ public class Worker extends TimerTask {
             // System.out.println(table.getValueAt(i, 3) + " " + table.getValueAt(i, 4));
             // if(table.getValueAt(i, 3) == "Passed" || table.getValueAt(i, 3) == "Passing") continue;
             String new_value = "";
-            int dep_time = this.cars.get(i).departure_time;
+            int dep_time = this.cars.[i]..departure_time;
             if(dep_time < 0) new_value = "-";
             else new_value = String.valueOf(dep_time);
             table.setValueAt(new_value, i, 4);
-            table.setValueAt(this.cars.get(i).status, i, 3);
+            table.setValueAt(this.cars.[i]..status, i, 3);
         }
     }
 
