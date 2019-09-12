@@ -19,16 +19,18 @@ public class AutomaticTrafficSystem {
     static TrafficLight light2 = new TrafficLight();
     static TrafficLight light3 = new TrafficLight();
     static List <Car> Cars = new ArrayList<Car>();
+    static boolean clicked = false;
 
-    public static void run_simulation(JTable table, JTextArea curr_light){
+    public static void run_simulation(DefaultTableModel model, JTextArea curr_light, Queue <Car> new_cars){
         Timer timer = new Timer(); 
         // creating an instance of task to be scheduled 
-        TimerTask task = new Worker(light1, light2, light3, table, curr_light, Cars); 
+        TimerTask task = new Worker(light1, light2, light3, model, curr_light, Cars, new_cars); 
           
         // scheduling the timer instance 
-        timer.schedule(task, 100, 2000); 
+        timer.schedule(task, 100, 1000); 
     }
     public static void main(String[] args) {  
+        Queue <Car> new_cars = new LinkedList <Car>();
         int lightActive = 1;
         light1.isGreen = true;
 
@@ -51,28 +53,38 @@ public class AutomaticTrafficSystem {
         JButton button1 = new JButton("Run Simulation");
         button1.setBounds(150, 210, 100, 40); 
 
-        String[] columnNames = {"Vehicle ID", "Source Direction", "Destination Direction", "Status", "Time Remaining"}; 
-        JTable table = new JTable(new DefaultTableModel(columnNames, 0));
+        String[] columns = {"Vehicle ID", "Source Direction", "Destination Direction", "Status", "Time Remaining"}; 
+        JTable table = new JTable(new DefaultTableModel(columns, 0));
 
         button.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e){
                 String source_dir = source_text.getText();
                 String dest_dir = dest_text.getText();
-                int time = Integer.parseInt(arrival_time.getText());
-                Car car = new Car(source_dir, dest_dir, time);
+                int time = 0;
+                if(clicked) time = Integer.parseInt(arrival_time.getText());;
+                Car car;
                 if(source_dir.equals("South") && dest_dir.equals("East")){
+                    car = new Car(light1, time);
                     car.departure_time = light1.set_departure_time(car, lightActive);
                 }
                 else if(source_dir.equals("West") && dest_dir.equals("South")){
+                    car = new Car(light2, time);
                     car.departure_time = light2.set_departure_time(car, lightActive);
                 }
                 else if(source_dir.equals("East") && dest_dir.equals("West")){
+                    car = new Car(light3, time);
                     car.departure_time = light3.set_departure_time(car, lightActive);
                 }
-                Cars.add(car);
-                System.out.println(car.departure_time);
-                DefaultTableModel model = (DefaultTableModel) table.getModel();
-                // model.addRow(new String[]{String.valueOf(car.vehicle_id), car.source_direction, car.dest_direction, car.status, String.valueOf(car.departure_time)});
+                if(clicked){
+                    synchronized(new_cars){
+                        new_cars.add(new Car(source_dir, dest_dir, 0));
+                    }
+                }
+                else{
+                    Cars.add(car);
+                }
+                // DefaultTableModel model = (DefaultTableModel) table.getModel();
+                // model.setColumnIdentifiers(columns);                
             }
         }); 
 
@@ -81,13 +93,16 @@ public class AutomaticTrafficSystem {
                 // for(Car car: Cars){
                 //     System.out.println(car.departure_time);
                 // }
-                run_simulation(table, curr_light);
+                run_simulation(model, curr_light, new_cars);
+                clicked = true;
+                arrival_time.setEnabled(false);
+                button1.setEnabled(false);
             }
         });
 
-        JPanel panel = new JPanel(); 
-        panel.setBounds(20, 550, 460, 50);
-        panel.setBackground(Color.red); 
+        // JPanel panel = new JPanel(); 
+        // panel.setBounds(20, 550, 460, 50);
+        // panel.setBackground(Color.red); 
         
         // frame.add(new Panel(){
 

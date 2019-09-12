@@ -66,7 +66,15 @@ public class PackingUnit extends Thread{
                 }
                 this.sealingSem.release();
             }else{
-                this.timer.nextBottle1=this.timer.nextBottle2;
+                System.out.println("in"+this.timer.nextBottle2+ " "+this.timer.nextBottle1);
+                // if(this.timer.nextBottle2>this.timer.nextBottle1)
+                    this.timer.nextBottle1=this.timer.nextBottle2;
+                    
+                // else{
+                //     this.timer.nextBottle1=this.timer.nextBottle1+2;
+                //     this.timer.nextBottle2=this.timer.nextBottle2+3;
+                // }
+                
                 return;
             }
         }
@@ -92,6 +100,8 @@ public class PackingUnit extends Thread{
                 update(false,2,2,this.lastQueue);
             }else{
                 update(false,0,this.lastUnfinished,this.lastQueue);
+                // this.timer.nextBottle1=this.timer.nextBottle1+1;
+                // return;
             }
         }else if((this.lastQueue!=1||this.packBuffer.qBottle2==0)&&this.packBuffer.qBottle1>0){
             try{

@@ -3,49 +3,43 @@ import javax.swing.table.*;
 
 import java.util.List;
 import java.util.TimerTask;
+import java.util.Queue;
 
 public class Worker extends TimerTask {
     public static TrafficLight light1, light2, light3;
-    public static JTable table;
+    public static DefaultTableModel model;
     public static JTextArea curr_light;
     public static List <Car> cars;
     public static Integer time = 0, activeLight = 1;
+    public static Queue <Car> new_cars;
+
+    public Worker(TrafficLight light1, TrafficLight light2, TrafficLight light3, DefaultTableModel model, JTextArea curr_light, List <Car> cars, Queue <Car> new_cars){
+        this.light1 = light1;
+        this.light2 = light2;
+        this.light3 = light3;
+        this.model = model;
+        this.curr_light = curr_light;
+        this.cars = cars;
+        this.new_cars = new_cars;
+    }
 
     public void updateRows(){
-        // if(change != -1){
-        //     table.setValueAt("Passed", change, 3);
-        //     try {
-        //         Thread.sleep(100);
-        //     }
-        //     catch(InterruptedException exc){
-    
-        //     }
-        // }
-        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        // DefaultTableModel model = (DefaultTableModel) table.getModel();
         for(Car car: this.cars){
             if(car.arrival_time == this.time){
                 model.addRow(new String[]{String.valueOf(car.vehicle_id), car.source_direction, car.dest_direction, car.status, String.valueOf(car.departure_time)});
             }
         }
-        for (int i = 0; i < table.getRowCount(); i++){
+        for (int i = 0; i < model.getRowCount(); i++){
             // System.out.println(table.getValueAt(i, 3) + " " + table.getValueAt(i, 4));
             // if(table.getValueAt(i, 3) == "Passed" || table.getValueAt(i, 3) == "Passing") continue;
             String new_value = "";
-            int dep_time = this.cars.[i]..departure_time;
+            int dep_time = this.cars.get(i).departure_time;
             if(dep_time < 0) new_value = "-";
             else new_value = String.valueOf(dep_time);
-            table.setValueAt(new_value, i, 4);
-            table.setValueAt(this.cars.[i]..status, i, 3);
+            model.setValueAt(new_value, i, 4);
+            model.setValueAt(this.cars.get(i).status, i, 3);
         }
-    }
-
-    public Worker(TrafficLight light1, TrafficLight light2, TrafficLight light3, JTable table, JTextArea curr_light, List <Car> cars){
-        this.light1 = light1;
-        this.light2 = light2;
-        this.light3 = light3;
-        this.table = table;
-        this.curr_light = curr_light;
-        this.cars = cars;
     }
 
     public void run() { 
@@ -71,6 +65,15 @@ public class Worker extends TimerTask {
             }
         }
         this.time++;
+        if(new_cars.size() != 0){
+            Car car = new_cars.peek();
+            car.arrival_time = this.time;
+            car.set_departure_time(lightActive, this.time%60);
+            this.cars.add(car);
+            synchronized(new_cars){
+                new_cars.remove();
+            }
+        }
         System.out.println(this.time);
         // int change = -1, j = 0;
         for(Car car: cars){
@@ -78,6 +81,7 @@ public class Worker extends TimerTask {
                 if(car.departure_time == 0){
                     car.status = "Passing";
                 }
+                car.light.waiting_cars--;
                 car.departure_time--;
             }
             else if(car.status == "Passing"){

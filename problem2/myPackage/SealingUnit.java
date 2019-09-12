@@ -40,7 +40,6 @@ public class SealingUnit extends Thread{
         if(this.currentBottle!=0&&!this.isPacked){
             try{
                 this.packingSem.acquire();
-                
                 if(c==1){
                     this.packBuffer.qBottle1++;
                     this.bottles.sealedbottle1++;
@@ -65,8 +64,7 @@ public class SealingUnit extends Thread{
             } catch (InterruptedException exc) { 
                 System.out.println(exc); 
             }
-            this.godownSem.release();
-                
+            this.godownSem.release();       
         }
         if(this.sealBuffer.sealUnitBuffer.isEmpty()){
             if((this.lastUnfinished!=2||this.unfinishedTray.b1==0)&&this.unfinishedTray.b2>0){
@@ -88,8 +86,10 @@ public class SealingUnit extends Thread{
                 this.semUnfinished.release();
                 update(false,1,1);
             }
-else{
-                this.timer.nextBottle2=this.timer.nextBottle1;
+            else{
+                update(false,0,this.lastUnfinished);
+                // this.timer.nextBottle2=this.timer.nextBottle2+1;
+                // return;
             }
         }else{
             int front=this.sealBuffer.sealUnitBuffer.peek();
