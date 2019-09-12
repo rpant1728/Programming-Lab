@@ -32,7 +32,7 @@ public class Factory{
                 System.out.println("a");
                 PackingUnit packing = new PackingUnit(tray,sub,pub,sem,packingSem,sealingSem,godownSem,time,godown,bottles);
                 SealingUnit sealing = new SealingUnit(tray,sub,pub,sem,packingSem,sealingSem,godownSem,time,godown,bottles);
-                packing.start();
+                
                 sealing.start();
                 try {
                     sealing.join();
@@ -40,6 +40,8 @@ public class Factory{
                 catch(InterruptedException e) {
                     // this part is executed when an exception (in this example InterruptedException) occurs
                 }
+                packing.start();
+                
                 try {
                     packing.join();                    
                 } 

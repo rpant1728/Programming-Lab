@@ -10,24 +10,29 @@ public class Car {
     public Car (TrafficLight light, String source_dir, String dest_dir, int time){
         this.light = light;
         source_direction = source_dir;
-        destination_dire
+        dest_direction = dest_dir;
         arrival_time = time;
         vehicle_id = car_count++;
     }
 
     void set_departure_time(int lightActive, int timeLeft){
-        if(lightActive == this.light_id){
-            car.departure_time = 6*(light.waiting_cars % 10) + 180*(light.waiting_cars / 10);
+        if(lightActive == light.light_id){
+            departure_time = 6*(light.waiting_cars % 10) + 180*(light.waiting_cars / 10);
         }
         else{
             int diff;
-            if(lightActive > car.light.light_id){
-                diff = 3 + car.light.light_id - lightActive;
+            if(lightActive > light.light_id){
+                diff = 3 + light.light_id - lightActive;
             }
-            else diff = car.light.light_id - lightActive;
-            car.departure_time = diff*60 + 6*(light.waiting_cars % 10) + 180*(light.waiting_cars / 10);
+            else diff = light.light_id - lightActive;
+            departure_time = diff*60 + 6*(light.waiting_cars % 10) + 180*(light.waiting_cars / 10);
         }
         
-        this.light.waiting_cars++;
+        light.waiting_cars++;
+    }
+
+    void set_departure_time1(){
+        departure_time = 6*(light.waiting_cars % 10) + 180*(light.waiting_cars / 10);
+        light.waiting_cars++;
     }
 }

@@ -20,14 +20,16 @@ public class AutomaticTrafficSystem {
     static TrafficLight light3 = new TrafficLight();
     static List <Car> Cars = new ArrayList<Car>();
     static boolean clicked = false;
+    static JTable table, table1;
 
-    public static void run_simulation(DefaultTableModel model, JTextArea curr_light, Queue <Car> new_cars){
+
+    public static void run_simulation(JTable table, JTable table1, JTextArea curr_light, Queue <Car> new_cars){
         Timer timer = new Timer(); 
         // creating an instance of task to be scheduled 
-        TimerTask task = new Worker(light1, light2, light3, model, curr_light, Cars, new_cars); 
+        TimerTask task = new Worker(light1, light2, light3, table, table1, curr_light, Cars, new_cars); 
           
         // scheduling the timer instance 
-        timer.schedule(task, 100, 1000); 
+        timer.schedule(task, 100, 100); 
     }
     public static void main(String[] args) {  
         Queue <Car> new_cars = new LinkedList <Car>();
@@ -54,30 +56,45 @@ public class AutomaticTrafficSystem {
         button1.setBounds(150, 210, 100, 40); 
 
         String[] columns = {"Vehicle ID", "Source Direction", "Destination Direction", "Status", "Time Remaining"}; 
-        JTable table = new JTable(new DefaultTableModel(columns, 0));
+        table = new JTable(new DefaultTableModel(columns, 0));
+        String[] columns1 = {"Light", "State", "Time"}; 
+        table1 = new JTable(new DefaultTableModel(columns1, 0));
+        DefaultTableModel model1 = (DefaultTableModel) table1.getModel();
+        model1.addRow(new String[]{"Light 1", "Green", String.valueOf(60)});
+        model1.addRow(new String[]{"Light 2", "Red", String.valueOf(120)});
+        model1.addRow(new String[]{"Light 3", "Red", String.valueOf(180)});
 
         button.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e){
                 String source_dir = source_text.getText();
                 String dest_dir = dest_text.getText();
                 int time = 0;
-                if(clicked) time = Integer.parseInt(arrival_time.getText());;
-                Car car;
+                if(!clicked) time = Integer.parseInt(arrival_time.getText());;
+                Car car = null;
                 if(source_dir.equals("South") && dest_dir.equals("East")){
-                    car = new Car(light1, time);
-                    car.departure_time = light1.set_departure_time(car, lightActive);
+                    car = new Car(light1, source_dir, dest_dir, time);
+                    car.set_departure_time1();
                 }
                 else if(source_dir.equals("West") && dest_dir.equals("South")){
-                    car = new Car(light2, time);
-                    car.departure_time = light2.set_departure_time(car, lightActive);
+                    car = new Car(light2, source_dir, dest_dir, time);
+                    car.set_departure_time1();
                 }
                 else if(source_dir.equals("East") && dest_dir.equals("West")){
-                    car = new Car(light3, time);
-                    car.departure_time = light3.set_departure_time(car, lightActive);
+                    car = new Car(light3, source_dir, dest_dir, time);
+                    car.set_departure_time1();
                 }
                 if(clicked){
+                    if(source_dir.equals("South") && dest_dir.equals("East")){
+                        car = new Car(light1, source_dir, dest_dir, 0);
+                    }
+                    else if(source_dir.equals("West") && dest_dir.equals("South")){
+                        car = new Car(light2, source_dir, dest_dir, 0);
+                    }
+                    else if(source_dir.equals("East") && dest_dir.equals("West")){
+                        car = new Car(light3, source_dir, dest_dir, 0);
+                    }
                     synchronized(new_cars){
-                        new_cars.add(new Car(source_dir, dest_dir, 0));
+                        new_cars.add(car);
                     }
                 }
                 else{
@@ -93,7 +110,7 @@ public class AutomaticTrafficSystem {
                 // for(Car car: Cars){
                 //     System.out.println(car.departure_time);
                 // }
-                run_simulation(model, curr_light, new_cars);
+                run_simulation(table, table1, curr_light, new_cars);
                 clicked = true;
                 arrival_time.setEnabled(false);
                 button1.setEnabled(false);
@@ -107,7 +124,8 @@ public class AutomaticTrafficSystem {
         // frame.add(new Panel(){
 
         // })
-        table.setBounds(20, 250, 460, 250);
+        table.setBounds(100, 250, 460, 250);
+        table1.setBounds(100,550, 460, 50);
 
         frame.add(button); 
         frame.add(button1);
@@ -115,9 +133,10 @@ public class AutomaticTrafficSystem {
         frame.add(dest_text);
         frame.add(arrival_time);
         frame.add(table);
-        frame.add(panel);
+        frame.add(table1);
+        // frame.add(panel);
         
-        frame.add(curr_light);
+        // frame.add(curr_light);
         frame.setSize(1000,1000); 
         frame.setLayout(null); 
         frame.setVisible(true);

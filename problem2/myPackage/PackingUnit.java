@@ -100,8 +100,12 @@ public class PackingUnit extends Thread{
                 update(false,2,2,this.lastQueue);
             }else{
                 update(false,0,this.lastUnfinished,this.lastQueue);
-                // this.timer.nextBottle1=this.timer.nextBottle1+1;
-                // return;
+                if(this.timer.nextBottle1==this.timer.nextBottle2){
+                    this.timer.nextBottle1++;
+                }else{
+                    this.timer.nextBottle1=this.timer.nextBottle2;
+                }
+                return;
             }
         }else if((this.lastQueue!=1||this.packBuffer.qBottle2==0)&&this.packBuffer.qBottle1>0){
             try{
@@ -124,10 +128,10 @@ public class PackingUnit extends Thread{
 
             update(true,2,this.lastUnfinished,2);
         }
-        // else{
-        //     this.timer.nextBottle1=this.timer.n  extBottle2;
-        //      return;
-        // }
+        else{
+            this.timer.nextBottle1=this.timer.nextBottle2;
+             return;
+        }
         this.timer.nextBottle1=this.timer.nextBottle1+2;
     }   
 }
