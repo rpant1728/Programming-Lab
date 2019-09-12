@@ -35,21 +35,14 @@ public class PackingUnit extends Thread{
     public void run(){
         // first update the output according to current data
         int c=this.currentBottle;
-        if(this.isSealed==true){
-            try{
-                this.godownSem.acquire();
-                if(c==1){
-                    this.godown.bottle1++;
-                    this.bottles.packedbottle1++;
-                }else{
-                    this.godown.bottle2++;
-                    this.bottles.packedbottle2++;
-                }
-            } catch (InterruptedException exc) { 
-                System.out.println(exc); 
+        if(this.isSealed){
+            if(this.currentBottle==1){
+                this.bottles.packedbottle1++;
+            }else{
+                this.bottles.packedbottle2++;
             }
-            this.godownSem.release();         
         }else if(this.currentBottle!=0){
+            System.out.println("current"+ this.timer.currentTime);
             if(this.sealBuffer.sealUnitBuffer.size()<2){
                 try{
                     this.sealingSem.acquire();
@@ -60,7 +53,6 @@ public class PackingUnit extends Thread{
                     else{
                         this.bottles.packedbottle2++;
                     }
-                    // System.out.println("current bottle packingunit"+this.currentBottle + " " + this.timer.currentTime);
                 } catch (InterruptedException exc) { 
                     System.out.println(exc); 
                 }
@@ -68,7 +60,8 @@ public class PackingUnit extends Thread{
             }else{
                 System.out.println("in"+this.timer.nextBottle2+ " "+this.timer.nextBottle1);
                 // if(this.timer.nextBottle2>this.timer.nextBottle1)
-                    this.timer.nextBottle1=this.timer.nextBottle2;
+                int t=this.timer.nextBottle2;
+                    this.timer.nextBottle1=t;
                     
                 // else{
                 //     this.timer.nextBottle1=this.timer.nextBottle1+2;
@@ -79,6 +72,7 @@ public class PackingUnit extends Thread{
             }
         }
         if(this.packBuffer.qBottle1==0&&this.packBuffer.qBottle2==0){
+            
             if((this.lastUnfinished!=1||this.unfinishedTray.b2==0)&&this.unfinishedTray.b1>0){
                 try{
                     this.semUnfinished.acquire();
@@ -100,11 +94,12 @@ public class PackingUnit extends Thread{
                 update(false,2,2,this.lastQueue);
             }else{
                 update(false,0,this.lastUnfinished,this.lastQueue);
-                if(this.timer.nextBottle1==this.timer.nextBottle2){
-                    this.timer.nextBottle1++;
-                }else{
-                    this.timer.nextBottle1=this.timer.nextBottle2;
-                }
+                // if(this.timer.nextBottle1==this.timer.nextBottle2){
+                //     this.timer.nextBottle1++;
+                // }else{
+                    int t=this.timer.nextBottle2;
+                    this.timer.nextBottle1=t;
+                // }
                 return;
             }
         }else if((this.lastQueue!=1||this.packBuffer.qBottle2==0)&&this.packBuffer.qBottle1>0){
@@ -129,7 +124,8 @@ public class PackingUnit extends Thread{
             update(true,2,this.lastUnfinished,2);
         }
         else{
-            this.timer.nextBottle1=this.timer.nextBottle2;
+            int t=this.timer.nextBottle2;
+            this.timer.nextBottle1=t;
              return;
         }
         this.timer.nextBottle1=this.timer.nextBottle1+2;

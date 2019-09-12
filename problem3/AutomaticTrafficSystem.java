@@ -1,6 +1,3 @@
-// package problem3;
-
-// import Car;
 import java.awt.event.*;  
 import javax.swing.*;
 import javax.swing.table.*;
@@ -11,6 +8,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.locks.ReentrantLock; 
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class AutomaticTrafficSystem {  
@@ -29,7 +27,7 @@ public class AutomaticTrafficSystem {
         TimerTask task = new Worker(light1, light2, light3, table, table1, curr_light, Cars, new_cars); 
           
         // scheduling the timer instance 
-        timer.schedule(task, 100, 100); 
+        timer.schedule(task, 100, 1000); 
     }
     public static void main(String[] args) {  
         Queue <Car> new_cars = new LinkedList <Car>();
@@ -37,7 +35,6 @@ public class AutomaticTrafficSystem {
         light1.isGreen = true;
 
         JFrame frame = new JFrame(); 
-
         JTextField source_text = new JTextField();
         JTextField dest_text = new JTextField();
         JTextField arrival_time = new JTextField();
@@ -46,23 +43,26 @@ public class AutomaticTrafficSystem {
         if(light3.isGreen) curr_light = new JTextArea("Light 3");
         curr_light.setBounds(20, 500, 460, 40);
 
-        source_text.setBounds(100, 50, 200, 30);
-        dest_text.setBounds(100, 90, 200, 30);
-        arrival_time.setBounds(100, 130, 200, 30);
+        source_text.setBounds(180, 50, 200, 30);
+        dest_text.setBounds(180, 90, 200, 30);
+        arrival_time.setBounds(180, 130, 200, 30);
 
         JButton button = new JButton("Add car");
-        button.setBounds(150, 170, 100, 40); 
+        button.setBounds(230, 170, 100, 40); 
         JButton button1 = new JButton("Run Simulation");
-        button1.setBounds(150, 210, 100, 40); 
+        button1.setBounds(230, 210, 100, 40); 
 
+        JPanel panel = new JPanel();
+        JPanel panel1 = new JPanel();
         String[] columns = {"Vehicle ID", "Source Direction", "Destination Direction", "Status", "Time Remaining"}; 
         table = new JTable(new DefaultTableModel(columns, 0));
+
         String[] columns1 = {"Light", "State", "Time"}; 
         table1 = new JTable(new DefaultTableModel(columns1, 0));
         DefaultTableModel model1 = (DefaultTableModel) table1.getModel();
-        model1.addRow(new String[]{"Light 1", "Green", String.valueOf(60)});
-        model1.addRow(new String[]{"Light 2", "Red", String.valueOf(120)});
-        model1.addRow(new String[]{"Light 3", "Red", String.valueOf(180)});
+        model1.addRow(new String[]{"Light 1", "Green", "60"});
+        model1.addRow(new String[]{"Light 2", "Red", "-"});
+        model1.addRow(new String[]{"Light 3", "Red", "-"});
 
         button.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e){
@@ -71,19 +71,24 @@ public class AutomaticTrafficSystem {
                 int time = 0;
                 if(!clicked) time = Integer.parseInt(arrival_time.getText());;
                 Car car = null;
-                if(source_dir.equals("South") && dest_dir.equals("East")){
-                    car = new Car(light1, source_dir, dest_dir, time);
-                    car.set_departure_time1();
+                if(!clicked){
+                    if(source_dir.equals("South") && dest_dir.equals("East")){
+                        car = new Car(light1, source_dir, dest_dir, time);
+                    }
+                    else if(source_dir.equals("West") && dest_dir.equals("South")){
+                        car = new Car(light2, source_dir, dest_dir, time);
+                    }
+                    else if(source_dir.equals("East") && dest_dir.equals("West")){
+                        car = new Car(light3, source_dir, dest_dir, time);
+                    }
+                    else{
+                        car = new Car(null, source_dir, dest_dir, time);
+                        car.departure_time = 0;
+                    }
+                    Cars.add(car);
+
                 }
-                else if(source_dir.equals("West") && dest_dir.equals("South")){
-                    car = new Car(light2, source_dir, dest_dir, time);
-                    car.set_departure_time1();
-                }
-                else if(source_dir.equals("East") && dest_dir.equals("West")){
-                    car = new Car(light3, source_dir, dest_dir, time);
-                    car.set_departure_time1();
-                }
-                if(clicked){
+                else{
                     if(source_dir.equals("South") && dest_dir.equals("East")){
                         car = new Car(light1, source_dir, dest_dir, 0);
                     }
@@ -93,23 +98,19 @@ public class AutomaticTrafficSystem {
                     else if(source_dir.equals("East") && dest_dir.equals("West")){
                         car = new Car(light3, source_dir, dest_dir, 0);
                     }
+                    else{
+                        car = new Car(null, source_dir, dest_dir, 0);
+                        car.departure_time = 0;
+                    }
                     synchronized(new_cars){
                         new_cars.add(car);
                     }
-                }
-                else{
-                    Cars.add(car);
-                }
-                // DefaultTableModel model = (DefaultTableModel) table.getModel();
-                // model.setColumnIdentifiers(columns);                
+                }          
             }
         }); 
 
         button1.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e){
-                // for(Car car: Cars){
-                //     System.out.println(car.departure_time);
-                // }
                 run_simulation(table, table1, curr_light, new_cars);
                 clicked = true;
                 arrival_time.setEnabled(false);
@@ -117,26 +118,20 @@ public class AutomaticTrafficSystem {
             }
         });
 
-        // JPanel panel = new JPanel(); 
-        // panel.setBounds(20, 550, 460, 50);
-        // panel.setBackground(Color.red); 
-        
-        // frame.add(new Panel(){
+        panel.setBounds(100, 250, 600, 250);
+        panel.add(new JScrollPane(table));
 
-        // })
-        table.setBounds(100, 250, 460, 250);
-        table1.setBounds(100,550, 460, 50);
+        panel1.setBounds(100, 550, 600, 75);
+        panel1.add(new JScrollPane(table1));
 
         frame.add(button); 
         frame.add(button1);
         frame.add(source_text);
         frame.add(dest_text);
         frame.add(arrival_time);
-        frame.add(table);
-        frame.add(table1);
-        // frame.add(panel);
-        
-        // frame.add(curr_light);
+        frame.add(panel);
+        frame.add(panel1);
+ 
         frame.setSize(1000,1000); 
         frame.setLayout(null); 
         frame.setVisible(true);

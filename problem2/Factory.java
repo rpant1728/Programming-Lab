@@ -32,15 +32,15 @@ public class Factory{
                 System.out.println("a");
                 PackingUnit packing = new PackingUnit(tray,sub,pub,sem,packingSem,sealingSem,godownSem,time,godown,bottles);
                 SealingUnit sealing = new SealingUnit(tray,sub,pub,sem,packingSem,sealingSem,godownSem,time,godown,bottles);
-                
                 sealing.start();
+                packing.start();
                 try {
                     sealing.join();
                 } 
                 catch(InterruptedException e) {
                     // this part is executed when an exception (in this example InterruptedException) occurs
                 }
-                packing.start();
+                
                 
                 try {
                     packing.join();                    
@@ -48,12 +48,13 @@ public class Factory{
                 catch(InterruptedException e) {
                     // this part is executed when an exception (in this example InterruptedException) occurs
                 }
-                // System.out.println("In Packing Machine : "+packing.currentBottle+" isSealed "+packing.isSealed);
-                // System.out.println("In Sealing Machine : "+sealing.currentBottle+" ispacked "+sealing.isPacked);
+                System.out.println("In Packing Machine : "+packing.currentBottle+" isSealed "+packing.isSealed);
+                System.out.println("In Sealing Machine : "+sealing.currentBottle+" ispacked "+sealing.isPacked);
                
             }
             else if(ct  == t1){
                 System.out.println("b");
+                
                 PackingUnit packing = new PackingUnit(tray,sub,pub,sem,packingSem,sealingSem,godownSem,time,godown,bottles);
                 packing.start();
 
@@ -63,7 +64,8 @@ public class Factory{
                 } 
                 catch(InterruptedException e) {
                     // this part is executed when an exception (in this example InterruptedException) occurs
-                }               
+                }
+                        
                 // System.out.println("In Packing Machine : "+packing.currentBottle+" isSealed "+packing.isSealed);
             }
             else if(ct == t2){
@@ -86,7 +88,7 @@ public class Factory{
                 System.out.println(time.nextBottle1+" "+ time.nextBottle2);  
                
             }    
-            // System.out.println(time.currentTime);
+            System.out.println(time.currentTime);
             // System.out.println("In Packing Machine : "+packing.currentBottle+" isSealed "+packing.isSealed);
             // System.out.println("In Packing Machine : "+sealing.currentBottle+" isSealed "+packing.isPacked);
             // System.out.println("Godown: " + godown.bottle1 + " " + godown.bottle2);  
@@ -94,7 +96,11 @@ public class Factory{
             System.out.println("Sealing Unit: " + sub.sealUnitBuffer.peek()+" size "+ sub.sealUnitBuffer.size());
             System.out.println("Unfinished Tray: " + tray.b1 + " " + tray.b2); 
             System.out.println("----------------------------------");
-            time.currentTime = Math.min(time.nextBottle1, time.nextBottle2); 
+            if(time.nextBottle1< time.nextBottle2){
+                time.currentTime=time.nextBottle1;
+            } else{
+                time.currentTime=time.nextBottle2;
+            }
             // System.out.println("hbjk");
             int gb1,gb2;
             if(bottles.packedbottle1<bottles.sealedbottle1){

@@ -37,7 +37,14 @@ public class SealingUnit extends Thread{
     public void run(){
         //update packing buffer
         int c=this.currentBottle;
-        if(this.currentBottle!=0&&!this.isPacked){
+        
+        if(this.isPacked==true){
+            if(this.currentBottle==1){
+                this.bottles.sealedbottle1++;
+            }else{    
+                this.bottles.sealedbottle2++;
+            }             
+        }else if(this.currentBottle!=0){
             try{
                 this.packingSem.acquire();
                 if(c==1){
@@ -51,20 +58,6 @@ public class SealingUnit extends Thread{
                 System.out.println(exc); 
             }
             this.packingSem.release();
-        }else if(this.isPacked==true){
-            try{
-                this.godownSem.acquire();
-                if(this.currentBottle==1){
-                    this.godown.bottle1++;
-                    this.bottles.sealedbottle1++;
-                }else{
-                    this.godown.bottle2++;
-                    this.bottles.sealedbottle2++;
-                }
-            } catch (InterruptedException exc) { 
-                System.out.println(exc); 
-            }
-            this.godownSem.release();       
         }
         if(this.sealBuffer.sealUnitBuffer.isEmpty()){
             if((this.lastUnfinished!=2||this.unfinishedTray.b1==0)&&this.unfinishedTray.b2>0){
@@ -88,8 +81,8 @@ public class SealingUnit extends Thread{
             }
             else{
                 update(false,0,this.lastUnfinished);
-                // this.timer.nextBottle2=this.timer.nextBottle2+1;
-                // return;
+                this.timer.nextBottle2=this.timer.nextBottle2+1;
+                return;
             }
         }else{
             int front=this.sealBuffer.sealUnitBuffer.peek();
