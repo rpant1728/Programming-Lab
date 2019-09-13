@@ -1,67 +1,67 @@
 public class Car {
     static int car_count = 0;
     TrafficLight light;
-    String source_direction, dest_direction;
-    int vehicle_id, arrival_time, departure_time;
+    String sourceDirection, destinationDirection;
+    int vehicleID, arrivalTime, departureTime;
     String status = "Init";
 
-    public Car (TrafficLight light, String source_dir, String dest_dir, int time){
+    public Car (TrafficLight light, String sourceDirection, String destinationDirection, int time){
         this.light = light;
-        source_direction = source_dir;
-        dest_direction = dest_dir;
-        arrival_time = time;
-        vehicle_id = car_count++;
+        this.sourceDirection = sourceDirection;
+        this.destinationDirection = destinationDirection;
+        this.arrivalTime = time;
+        this.vehicleID = car_count++;
     }
 
-    void set_departure_time(int lightActive, int leftTime){
+    void set_departure_time(int activeLight, int currentTime){
         boolean check = false;
         if(light == null){
-            departure_time = 0;
+            departureTime = 0;
             status = "Passing";
             check = true;
             return;
-        }
-        if(light.waiting_cars == 0) {
-            if(lightActive != light.light_id){
-                int diff;
-                if(lightActive > light.light_id){
-                    diff = 3 + light.light_id - lightActive;
+        } 
+        if(light.waitingCars == 0) {
+            if(activeLight != light.lightID){
+                int difference;
+                if(activeLight > light.lightID){
+                    difference = 3 + light.lightID - activeLight;
                 }
-                else diff = light.light_id - lightActive;
-                departure_time = diff*60-leftTime;
+                else difference = light.lightID - activeLight;
+                departureTime = difference*60 - currentTime;
             }
             else{
-                if(leftTime-light.prev_time > 6){
-                    if(leftTime < 54){
-                        light.prev_time = leftTime;
-                        departure_time = -1;
+                if(currentTime-light.previousRunTime > 6){
+                    if(currentTime < 54){
+                        light.previousRunTime = currentTime;
+                        departureTime = -1;
                         status = "Passing";
                         check = true;
                     }
                     else{
-                        light.prev_time = (180-leftTime)%60;
-                        departure_time = 180-leftTime;
+                        light.previousRunTime = (180-currentTime)%60;
+                        departureTime = 180-currentTime;
                     }
                 }
                 else{
-                    if(light.prev_time <= 48){
-                        departure_time = 6 - (leftTime - light.prev_time);
+                    if(light.previousRunTime <= 48){
+                        departureTime = 6 - (currentTime - light.previousRunTime);
                     }
                     else{
-                        departure_time = 180 - leftTime;
+                        departureTime = 180 - currentTime;
                     }
                 }
             }
-            light.last_waiting_time = departure_time + 6;
-            if(!check) light.waiting_cars++; 
+            light.lastWaitingTime = departureTime + 6;
+            if(!check) light.waitingCars++; 
         }
         else {
-            int waiting_time = light.last_waiting_time;
-            if(light.last_waiting_time%60 > 54) waiting_time += 180 - light.last_waiting_time%60;
-            else if (light.last_waiting_time != 0 && light.last_waiting_time%60 == 0) waiting_time += 120;
-            departure_time = waiting_time;
-            light.last_waiting_time = departure_time + 6;        
-            light.waiting_cars++;
+            int waitingTime = light.lastWaitingTime;
+            if(light.lastWaitingTime%60 > 54) waitingTime += 180 - light.lastWaitingTime%60;
+            else if (light.lastWaitingTime != 0 && light.lastWaitingTime%60 == 0) waitingTime += 120;
+            departureTime = waitingTime;
+            light.lastWaitingTime = departureTime + 6;        
+            light.waitingCars++;
         }
     }
 }

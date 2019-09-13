@@ -1,10 +1,9 @@
-package myPackage;
 import java.util.concurrent.*;
 public class PackingUnit extends Thread{
     public static int currentBottle=0;
-    public static boolean isSealed=false;   //is current bottle sealed or not
-    static int lastUnfinished=0; //last type of bottle packed from unfinshed tray
-    static int lastQueue=0;      //last type of bottle packed from qu'sray
+    public static boolean isSealed=false;          //is current bottle sealed or not
+    static int lastUnfinished=0;                   //last type of bottle packed from unfinshed tray
+    static int lastQueue=0;                        //last type of bottle packed from qu'sray
     UnfinishedTray unfinishedTray;
     Semaphore semUnfinished,packingSem,sealingSem,godownSem;
     Time timer;
@@ -25,24 +24,32 @@ public class PackingUnit extends Thread{
         this.godown=godown;
         this.bottles=bottles;
     }        
+
     public void update(boolean sealed,int bottle,int lastUnfinished,int lastQueue){
         this.isSealed=sealed;
         this.currentBottle=bottle;
         this.lastUnfinished=lastUnfinished;
         this.lastQueue=lastQueue;
     }
+
     @Override
     public void run(){
-        // first update the output according to current data
-        int c=this.currentBottle;
+
         if(this.isSealed){
-            if(this.currentBottle==1){
-                this.bottles.packedbottle1++;
-            }else{
-                this.bottles.packedbottle2++;
+            try{
+                this.godownSem.acquire();
+                if(this.currentBottle==1){
+                    this.godown.bottle1++;
+                    this.bottles.packedbottle1++;
+                }else{
+                    this.godown.bottle2++;
+                    this.bottles.packedbottle2++;
+                }
+            } catch (InterruptedException exc) { 
+                System.out.println(exc); 
             }
+            this.godownSem.release();
         }else if(this.currentBottle!=0){
-            System.out.println("current"+ this.timer.currentTime);
             if(this.sealBuffer.sealUnitBuffer.size()<2){
                 try{
                     this.sealingSem.acquire();
@@ -52,27 +59,18 @@ public class PackingUnit extends Thread{
                     }
                     else{
                         this.bottles.packedbottle2++;
-                    }
+                    }                    
                 } catch (InterruptedException exc) { 
                     System.out.println(exc); 
                 }
                 this.sealingSem.release();
             }else{
-                System.out.println("in"+this.timer.nextBottle2+ " "+this.timer.nextBottle1);
-                // if(this.timer.nextBottle2>this.timer.nextBottle1)
-                int t=this.timer.nextBottle2;
-                    this.timer.nextBottle1=t;
-                    
-                // else{
-                //     this.timer.nextBottle1=this.timer.nextBottle1+2;
-                //     this.timer.nextBottle2=this.timer.nextBottle2+3;
-                // }
-                
+                int t=this.timer.nextWakeUpSeal;
+                this.timer.nextWakeUpPack=t;
                 return;
             }
         }
         if(this.packBuffer.qBottle1==0&&this.packBuffer.qBottle2==0){
-            
             if((this.lastUnfinished!=1||this.unfinishedTray.b2==0)&&this.unfinishedTray.b1>0){
                 try{
                     this.semUnfinished.acquire();
@@ -80,7 +78,6 @@ public class PackingUnit extends Thread{
                 }catch(InterruptedException exc) { 
                     System.out.println(exc); 
                 } 
-
                 this.semUnfinished.release();
                 update(false,1,1,this.lastQueue);
             }else if((this.lastUnfinished!=2||this.unfinishedTray.b1==0)&&this.unfinishedTray.b2>0){
@@ -94,12 +91,7 @@ public class PackingUnit extends Thread{
                 update(false,2,2,this.lastQueue);
             }else{
                 update(false,0,this.lastUnfinished,this.lastQueue);
-                // if(this.timer.nextBottle1==this.timer.nextBottle2){
-                //     this.timer.nextBottle1++;
-                // }else{
-                    int t=this.timer.nextBottle2;
-                    this.timer.nextBottle1=t;
-                // }
+                this.timer.nextWakeUpPack=this.timer.nextWakeUpSeal;
                 return;
             }
         }else if((this.lastQueue!=1||this.packBuffer.qBottle2==0)&&this.packBuffer.qBottle1>0){
@@ -120,14 +112,12 @@ public class PackingUnit extends Thread{
                 System.out.println(exc); 
             } 
             this.packingSem.release();
-
             update(true,2,this.lastUnfinished,2);
         }
         else{
-            int t=this.timer.nextBottle2;
-            this.timer.nextBottle1=t;
-             return;
+            this.timer.nextWakeUpPack=this.timer.nextWakeUpSeal;
+            return;
         }
-        this.timer.nextBottle1=this.timer.nextBottle1+2;
+        this.timer.nextWakeUpPack=this.timer.nextWakeUpPack+2;
     }   
 }

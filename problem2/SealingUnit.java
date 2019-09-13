@@ -1,21 +1,17 @@
-package myPackage;
 import java.util.concurrent.*;
+
 public class SealingUnit extends Thread{
-    // int nextTime;
-    // int qBottle1;       
-    // int qBottle2;       //count of bottle in queue
     public  static int currentBottle=0;
     public static boolean isPacked=false;   //is current bottle sealed or not
-    static int lastUnfinished=0; //last type of bottle packed from unfinshed tray
-    // int lastQueue;      //last type of bottle packed from qu'sray
+    static int lastUnfinished=0;            //last type of bottle packed from unfinshed tray
     UnfinishedTray unfinishedTray;
     SealingUnitBuffer sealBuffer;
     PackingUnitBuffer packBuffer;
-
     Time timer;
     Godown godown;
     Bottles bottles;
     Semaphore semUnfinished,packingSem,sealingSem,godownSem;
+
     public SealingUnit(UnfinishedTray u,SealingUnitBuffer s,PackingUnitBuffer p,Semaphore sem,Semaphore packingSem,Semaphore sealingSem,Semaphore godownSem,Time timer,Godown godown,Bottles bottles){
         this.unfinishedTray=u;
         this.sealBuffer=s;
@@ -28,22 +24,32 @@ public class SealingUnit extends Thread{
         this.godown=godown;
         this.bottles=bottles;
     }
+
     public void update(boolean isPacked,int currentBottle,int lastUnfinished){
         this.isPacked=isPacked;
         this.lastUnfinished=lastUnfinished;
         this.currentBottle=currentBottle;
     }
+
     @Override
     public void run(){
         //update packing buffer
         int c=this.currentBottle;
-        
+
         if(this.isPacked==true){
-            if(this.currentBottle==1){
-                this.bottles.sealedbottle1++;
-            }else{    
-                this.bottles.sealedbottle2++;
-            }             
+            try{
+                this.godownSem.acquire();
+                if(this.currentBottle==1){
+                    this.godown.bottle1++;
+                    this.bottles.sealedbottle1++;
+                }else{
+                    this.godown.bottle2++;
+                    this.bottles.sealedbottle2++;
+                }
+            } catch (InterruptedException exc) { 
+                System.out.println(exc); 
+            }
+            this.godownSem.release();           
         }else if(this.currentBottle!=0){
             try{
                 this.packingSem.acquire();
@@ -81,7 +87,7 @@ public class SealingUnit extends Thread{
             }
             else{
                 update(false,0,this.lastUnfinished);
-                this.timer.nextBottle2=this.timer.nextBottle2+1;
+                this.timer.nextWakeUpSeal=this.timer.nextWakeUpSeal+1;
                 return;
             }
         }else{
@@ -96,6 +102,6 @@ public class SealingUnit extends Thread{
             this.sealingSem.release();
             update(true,front,this.lastUnfinished);
         }
-        this.timer.nextBottle2=this.timer.nextBottle2+3;
+        this.timer.nextWakeUpSeal=this.timer.nextWakeUpSeal+3;
     }
 }
