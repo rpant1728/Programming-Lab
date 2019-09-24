@@ -79,12 +79,21 @@ public class Car {
             int waitingTime = light.lastWaitingTime;
             // If last waiting car won't allow for another car to pass before the signal turns "Red"
             // schedule departure when the light next turns Green
-            if(light.lastWaitingTime%60 > 54){
-                waitingTime += 180 - light.lastWaitingTime%60;
+            
+            if(activeLight == light.lightID){
+                // System.out.println(currentTime + light.lastWaitingTime);
+                if((currentTime + light.lastWaitingTime)%60 > 54){
+                    // System.out.println(currentTime + " " + light.lastWaitingTime);
+                    waitingTime += 180 - (currentTime + light.lastWaitingTime)%60;
+                }
             }
-            else if (light.lastWaitingTime != 0 && light.lastWaitingTime%60 == 0) {
-                waitingTime += 120;
+            else{
+                if(light.lastWaitingTime%60 > 54){
+                    waitingTime += 180 - light.lastWaitingTime%60;
+                }
             }
+
+
             // Set departure time and update last waiting car time to the time when this car would have passed
             departureTime = waitingTime;
             light.lastWaitingTime = departureTime + 6;        

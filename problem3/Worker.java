@@ -5,16 +5,18 @@ import java.util.List;
 import java.util.TimerTask;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.Queue;
+import java.util.HashMap;
 
 
 // Class Worker: scheduled to run every second, updates GUI
 public class Worker extends TimerTask {
     public static TrafficLight lightSE, lightWS, lightEW;     
-    public static JTable vehicleTable, lightTable;             // Table showing current staus of vehicles and lights
-    public static List <Car> cars;                             // List of all vehicles
-    public static Integer currentTime = 0, activeLight = 1;    // Store the time elapsed and light currently Green
-    public static Queue <Car> new_cars;                        // Stores newly entered cars via the GUI in the previous second
-    public static ReentrantLock lock;                          // Lock over the queue of newly entered cars for synchronization
+    public static JTable vehicleTable, lightTable;                          // Table showing current staus of vehicles and lights
+    public static List <Car> cars;                                          // List of all vehicles
+    public static int currentTime = 0, activeLight = 1;                     // Store the time elapsed and light currently Green
+    public static Queue <Car> new_cars;                                     // Stores newly entered cars via the GUI in the previous second
+    public static ReentrantLock lock;                                       // Lock over the queue of newly entered cars for synchronization
+    public static HashMap<Integer, Integer> rowToCarMap = new HashMap<>();  // Store car id for given table row
 
     // Constructor
     public Worker(TrafficLight lightSE, TrafficLight lightWS, TrafficLight lightEW, JTable vehicleTable, 
@@ -125,11 +127,12 @@ public class Worker extends TimerTask {
                     // Add car to vehicles' table
                     vehicleModel.addRow(new String[]{String.valueOf(car.vehicleID), car.sourceDirection, 
                         car.destinationDirection, car.status, String.valueOf(car.departureTime)});
+                    rowToCarMap.put(vehicleModel.getRowCount(), car.vehicleID);
                     car.departureTime = -1;
                 }
 
                 // Allow the car to pass for 6 seconds, after which set it's status to "Passed"
-                else if(car.status == "Passing"){
+                else if(car.status.equals("Passing")){
                     if(car.departureTime == -6) car.status = "Passed";
                     else car.departureTime--;
                 }
@@ -139,14 +142,17 @@ public class Worker extends TimerTask {
                 // If it is time for the car to arrive, change car's status to "Waiting"
                 if(car.arrivalTime == this.currentTime){
                     car.status = "Waiting";
+
                     // Schedule the departure of the car and add it to vehicles' table
                     car.set_departure_time(activeLight, currentTime%60);
+
                     vehicleModel.addRow(new String[]{String.valueOf(car.vehicleID), car.sourceDirection,
                         car.destinationDirection, car.status, String.valueOf(car.departureTime)});
+                    rowToCarMap.put(vehicleModel.getRowCount(), car.vehicleID);                    
                 }
 
                 // If car is already in "Waiting" state
-                else if(car.status == "Waiting"){
+                else if(car.status.equals("Waiting")){
                     // If it is time for it to leave, change its state to "Passing"
                     if(car.departureTime == 0){
                         // Update the last run time for the traffic light
@@ -158,7 +164,7 @@ public class Worker extends TimerTask {
                 }
 
                 // Allow the car to pass for 6 seconds, after which set it's status to "Passed"
-                else if(car.status == "Passing"){
+                else if(car.status.equals("Passing")){
                     if(car.departureTime == -6) car.status = "Passed";
                     else car.departureTime--;
                 }
@@ -174,20 +180,21 @@ public class Worker extends TimerTask {
         DefaultTableModel lightModel = (DefaultTableModel) lightTable.getModel();
 
         for (int i = 0; i < vehicleModel.getRowCount(); i++){
+            Car car = this.cars.get(rowToCarMap.get(i+1));
             String newValue = "";
 
             // If car's status is "Passing" or "Passed"
-            if(this.cars.get(i).departureTime < 0){
+            if(car.departureTime < 0){
                 newValue = "-";
             }
 
             else {
-                newValue = String.valueOf(this.cars.get(i).departureTime);
+                newValue = String.valueOf(car.departureTime);
             }
 
             // Display latest departure time and car status
             vehicleModel.setValueAt(newValue, i, 4);
-            vehicleModel.setValueAt(this.cars.get(i).status, i, 3);
+            vehicleModel.setValueAt(car.status, i, 3);
         }
 
         // Update currently active light and time left after which it turns Red

@@ -1,3 +1,4 @@
+import java.awt.BorderLayout;
 import java.awt.event.*;  
 import javax.swing.*;
 import javax.swing.table.*;
@@ -38,29 +39,44 @@ public class TrafficSystemGUI {
         int activeLight = 1;
         lightSE.isGreen = true;
 
-        // Initialize UI components (textboxes for user input)
-        JFrame frame = new JFrame(); 
-        JTextField sourceText = new JTextField();
-        JTextField destText = new JTextField();
-        JTextField arrivalTime = new JTextField();
+        // Create main UI frame
+        JFrame frame = new JFrame("Automatic Traffic Light System"); 
 
-        // Fix position of UI components
-        sourceText.setBounds(180, 50, 200, 30);
-        destText.setBounds(180, 90, 200, 30);
-        arrivalTime.setBounds(180, 130, 200, 30);
+        // Create and set positions for user input labels
+        JLabel sourceLabel = new JLabel();
+        JLabel destinationLabel = new JLabel();
+        JLabel arrivalLabel = new JLabel();
+
+        sourceLabel.setText("Source: ");
+        destinationLabel.setText("Destination: ");
+        arrivalLabel.setText("Arrival Time: ");
+
+        sourceLabel.setBounds(250, 50, 100, 30);
+        destinationLabel.setBounds(250, 90, 100, 30);
+        arrivalLabel.setBounds(250, 130, 100, 30);
+
+        // Create and set positions for user input textboxes
+        JTextField sourceText = new JTextField(15);
+        JTextField destText = new JTextField(15);
+        JTextField arrivalTime = new JTextField(15);
+
+        sourceText.setBounds(350, 50, 200, 30);
+        destText.setBounds(350, 90, 200, 30);
+        arrivalTime.setBounds(350, 130, 200, 30);
 
         // Add buttons to add cars and run simulation
         JButton addCarButton = new JButton("Add car");
-        addCarButton.setBounds(230, 170, 100, 40); 
         JButton runSimulationButton = new JButton("Run Simulation");
-        runSimulationButton.setBounds(230, 210, 100, 40); 
+
+        addCarButton.setBounds(350, 180, 100, 40); 
+        runSimulationButton.setBounds(300, 230, 200, 40); 
 
         // Create panels to display vehicle and traffic light status tables
         JPanel vehiclePanel = new JPanel();
         JPanel lightPanel = new JPanel();
 
         // Create vehicle status table
-        String[] vehicleTableColumns = {"Vehicle ID", "Source Direction", "Destination Direction", "Status", "Time Remaining"}; 
+        String[] vehicleTableColumns = {"Vehicle ID", "Source", "Destination", "Status", "Time Left"}; 
         vehicleTable = new JTable(new DefaultTableModel(vehicleTableColumns, 0));
 
         // Create light status table
@@ -76,30 +92,49 @@ public class TrafficSystemGUI {
         // Add callback function for when the "Add car" button is clicked
         addCarButton.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent event){
-                // Get user input for directions and arrival timr
+                // Get user input for directions and arrival time
                 String sourceDirection = sourceText.getText();
-                String destinationDirection = destText.getText();
+                String destDirection = destText.getText();
+
+                // If input is invalid, return
+                if(!sourceDirection.equals("N") && !sourceDirection.equals("E") && !sourceDirection.equals("W") && !sourceDirection.equals("S")){
+                    return;
+                }
+                if(!destDirection.equals("N") && !destDirection.equals("E") && !destDirection.equals("W") && !destDirection.equals("S")){
+                    return;
+                }
+                // Clear input fields
+                // sourceText.setText("");
+                // destText.setText("");
                 int currentTime = 0;
-                if(!isClicked) currentTime = Integer.parseInt(arrivalTime.getText());;
+
+                // If simulation  not running currently
+                if(!isClicked) {
+                    currentTime = Integer.parseInt(arrivalTime.getText());
+                    if(currentTime < 0) System.out.println("Invalid Input! Arrival time should be greater than zero.");
+                    // arrivalTime.setText("");
+                }
+
+                //Initialize new Car object
                 Car car = null;
                 
                 // If simulation has not begun yet
                 if(!isClicked){
                     // Create a car object and associate traffic light with its travel directions
-                    if(sourceDirection.equals("South") && destinationDirection.equals("East")){
-                        car = new Car(lightSE, sourceDirection, destinationDirection, currentTime);
+                    if(sourceDirection.equals("S") && destDirection.equals("E")){
+                        car = new Car(lightSE, sourceDirection, destDirection, currentTime);
                     }
 
-                    else if(sourceDirection.equals("West") && destinationDirection.equals("South")){
-                        car = new Car(lightWS, sourceDirection, destinationDirection, currentTime);
+                    else if(sourceDirection.equals("W") && destDirection.equals("S")){
+                        car = new Car(lightWS, sourceDirection, destDirection, currentTime);
                     }
 
-                    else if(sourceDirection.equals("East") && destinationDirection.equals("West")){
-                        car = new Car(lightEW, sourceDirection, destinationDirection, currentTime);
+                    else if(sourceDirection.equals("E") && destDirection.equals("W")){
+                        car = new Car(lightEW, sourceDirection, destDirection, currentTime);
                     }
 
                     else{
-                        car = new Car(null, sourceDirection, destinationDirection, currentTime);
+                        car = new Car(null, sourceDirection, destDirection, currentTime);
                         car.departureTime = 0;
                     }
                     // Update array of all cars arrived till now
@@ -109,20 +144,20 @@ public class TrafficSystemGUI {
                 // If simulation is running
                 else{
                     // Create a car object and associate traffic light with its travel directions
-                    if(sourceDirection.equals("South") && destinationDirection.equals("East")){
-                        car = new Car(lightSE, sourceDirection, destinationDirection, 0);
+                    if(sourceDirection.equals("S") && destDirection.equals("E")){
+                        car = new Car(lightSE, sourceDirection, destDirection, 0);
                     }
 
-                    else if(sourceDirection.equals("West") && destinationDirection.equals("South")){
-                        car = new Car(lightWS, sourceDirection, destinationDirection, 0);
+                    else if(sourceDirection.equals("W") && destDirection.equals("S")){
+                        car = new Car(lightWS, sourceDirection, destDirection, 0);
                     }
 
-                    else if(sourceDirection.equals("East") && destinationDirection.equals("West")){
-                        car = new Car(lightEW, sourceDirection, destinationDirection, 0);
+                    else if(sourceDirection.equals("E") && destDirection.equals("W")){
+                        car = new Car(lightEW, sourceDirection, destDirection, 0);
                     }
 
                     else{
-                        car = new Car(null, sourceDirection, destinationDirection, 0);
+                        car = new Car(null, sourceDirection, destDirection, 0);
                         car.departureTime = 0;
                     }
 
@@ -156,23 +191,27 @@ public class TrafficSystemGUI {
         });
 
         // Set position of UI tables
-        vehiclePanel.setBounds(100, 250, 600, 250);
-        vehiclePanel.add(new JScrollPane(vehicleTable));
+        vehiclePanel.add(new JScrollPane(vehicleTable, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+            JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED), BorderLayout.CENTER);
+        vehiclePanel.setBounds(100, 300, 600, 500);        
 
-        lightPanel.setBounds(100, 550, 600, 75);
-        lightPanel.add(new JScrollPane(lightTable));
+        lightPanel.setBounds(100, 825, 600, 75);
+        lightPanel.add(new JScrollPane(lightTable), BorderLayout.CENTER);
 
         // Add UI components to parent frame
-        frame.add(addCarButton); 
-        frame.add(runSimulationButton);
+        frame.add(sourceLabel);
+        frame.add(destinationLabel);
+        frame.add(arrivalLabel);
         frame.add(sourceText);
         frame.add(destText);
         frame.add(arrivalTime);
+        frame.add(addCarButton); 
+        frame.add(runSimulationButton);
         frame.add(vehiclePanel);
         frame.add(lightPanel);
  
         // Set frame layout
-        frame.setSize(1000,1000); 
+        frame.setSize(800,1000); 
         frame.setLayout(null); 
         frame.setVisible(true);
     }
