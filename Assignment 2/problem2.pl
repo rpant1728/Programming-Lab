@@ -141,7 +141,7 @@ get_items_diet(Course, Item, Nutrients, TotalNutrients, Id, CurrentList) :-
             ;
             write("")
         )    
-    ).
+    ). 
 
 % Returns possible items given status and course preferences
 find_items(Status, X, Y, Z) :-

@@ -5,7 +5,7 @@ edge(g3,g5,8).
 edge(g4,g5,9). 
 edge(g1,g6,10). 
 edge(g2,g6,9). 
-edge(g3,g6,3).  
+edge(g3,g6,300).  
 edge(g4,g6,5). 
 edge(g5,g7,3). 
 edge(g5,g10,4). 

@@ -12,7 +12,7 @@ validate_input([Head]) :-
 validate_input([Head,Next|Tail]) :-
     (
         % If leading character is not a digit, output error and terminate.
-        not(char_type(Head, 'digit')) ; not(char_type(Next, 'digit')) -> 
+        (not(char_type(Head, 'digit')) ; not(char_type(Next, 'digit'))) -> 
             write("Invalid Input! Only numbers allowed."), 
             fail
         ;
@@ -50,7 +50,8 @@ decode(String) :-
     (
         % Return 0 number of ways if leading digit of input is 0.
         Num =:= 0 ->
-            write("Number of ways :- 0")
+            write("Number of ways :- 0"),
+            fail
         ;
         % Else go forth with processing.
         dp(Opt1, Opt2, List)

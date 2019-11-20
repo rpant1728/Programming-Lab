@@ -1,2 +1,5 @@
 .vscode/
 *.class
+*.hi
+*.ho
+.gitignore
